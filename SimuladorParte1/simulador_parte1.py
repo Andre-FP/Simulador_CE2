@@ -2,36 +2,49 @@ import numpy as np
 import sys
 import click
 
+def Add_Idc(splitted_line, In):
+    node_a = int(splitted_line[1])
+    node_b = int(splitted_line[2])
+    I = float(splitted_line[4])
+    In[node_a] += -I
+    In[node_b] += I
+    return In
+
+def Add_R(splitted_line, Gn):
+    node_a = int(splitted_line[1])
+    node_b = int(splitted_line[2])
+    R = float(splitted_line[3])
+    Gn[node_a, node_a] += 1/R
+    Gn[node_b, node_b] += 1/R
+    Gn[node_a, node_b] += -1/R
+    Gn[node_b, node_a] += -1/R
+    return Gn
+
+def Add_GmIdc(splitted_line, Gn):
+    node_a = int(splitted_line[1])
+    node_b = int(splitted_line[2])
+    node_c = int(splitted_line[3])
+    node_d = int(splitted_line[4])
+    G = float(splitted_line[5])
+    Gn[node_a, node_c] += G
+    Gn[node_a, node_d] += -G
+    Gn[node_b, node_c] += -G
+    Gn[node_b, node_d] += G
+    return Gn
+
 def fill_matrixs(Gn, In, content):
     for component in content:
         splitted_line = component.split(" ")
         
         if component[0] == "I":
-            node_a = int(splitted_line[1])
-            node_b = int(splitted_line[2])
-            I = float(splitted_line[4])
-            In[node_a] += -I
-            In[node_b] += I
+            In = Add_Idc(splitted_line, In)
 
         elif component[0] == "R":
-            node_a = int(splitted_line[1])
-            node_b = int(splitted_line[2])
-            R = float(splitted_line[3])
-            Gn[node_a, node_a] += 1/R
-            Gn[node_b, node_b] += 1/R
-            Gn[node_a, node_b] += -1/R
-            Gn[node_b, node_a] += -1/R
+            Gn = Add_R(splitted_line, Gn)
             
         elif component[0] == "G":
-            node_a = int(splitted_line[1])
-            node_b = int(splitted_line[2])
-            node_c = int(splitted_line[3])
-            node_d = int(splitted_line[4])
-            G = float(splitted_line[5])
-            Gn[node_a, node_c] += G
-            Gn[node_a, node_d] += -G
-            Gn[node_b, node_c] += -G
-            Gn[node_b, node_d] += G
+            Gn = Add_GmIdc(splitted_line, Gn)
+
     return Gn, In
 
 def get_number_of_nodes(content):
