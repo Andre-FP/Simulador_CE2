@@ -49,10 +49,13 @@ class Circuit:
             I_module = float(splitted_line[5])
             I_phase = float(splitted_line[7])*pi/180 # pass to radians
         
-        else: # So, len(splitted_line) == 7
+        elif len(splitted_line) == 7: # So, len(splitted_line) == 7
             I_module = float(splitted_line[4])
             I_phase = float(splitted_line[6])*pi/180 # pass to radians
-        
+        else:
+            sys.exit(f'\nInvalid netlist. Sine Current Source "{splitted_line[0]}" has an invalid number of arguments')
+
+
         In[node_a] += -rect(I_module, I_phase)
         In[node_b] += rect(I_module, I_phase)
 
@@ -242,10 +245,10 @@ class Circuit:
 
                 i += 1
             else:
-                sys.exit(f"Netlist com a {i}ª linha inválida")
+                sys.exit(f"\nNetlist com a {i}ª linha inválida")
 
         if self.w == 0:
-            sys.exit("The circuit must have at least one Sine Power Source. It doesn't countains any.")
+            sys.exit("\nThe circuit must have at least one Sine Power Source. There aren't any in this netlist.")
 
         self.n = len(nodes)
         return self.n, content
@@ -374,5 +377,4 @@ def main(netlist):
     ckt = Circuit()
     ckt.analyze(netlist)
     ckt.show("e")
-    
 main()
