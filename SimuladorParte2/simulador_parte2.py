@@ -21,86 +21,6 @@ class Circuit:
         self.L = []
         self.K = []
     
-    def get_number_of_nodes(self, content):
-        """
-        Get number of nodes for creating the matrices
-
-        Args:
-            content (list): Full content of netlist file in "readlines" format.
-
-        Returns:
-            [int]: Number of nodes.
-            [list]: Content of netlist file with useless line removed.
-        """
-        # Store only unique elements
-        nodes = set()
-        
-        i = 0
-        content_lenght = len(content)
-        while(i < content_lenght):
-            # Skip and removes blank lines and comments:       
-            if content[i][0] == "\n" or content[i][0] == "*" or content[i][0] == " "\
-            or content[i][0] == "\0": 
-                
-                content.remove(content[i])
-
-                # The next element becomes the current one, so doesn't need to add 1 in "i".
-                # Content lenght down by 1 
-                content_lenght -= 1
-
-            elif content[i][0] == "I" or content[i][0] == "R" or content[i][0] == "G"\
-                or content[i][0] == "L" or content[i][0] == "C" or content[i][0] == "K":
-                
-                splitted_line = content[i].split(" ")
-                
-                # Add node "a" and "b"
-                nodes.add(int(splitted_line[1]))
-                nodes.add(int(splitted_line[2]))
-
-                if content[i][0] == "G" or content[i][0] == "K":
-                    # nodes "c" and "d" (control nodes for "G", and nodes for the secondary 
-                    # inductor of the transformer "K")
-                    nodes.add(int(splitted_line[3]))
-                    nodes.add(int(splitted_line[4]))
-
-                # Get frequency of sine wave source
-                elif splitted_line[3] == "SIN":
-                    self.w = 2*pi*float(splitted_line[6])
-
-                i += 1
-            else:
-                sys.exit(f"Netlist com a {i}ª linha inválida")
-
-        self.n = len(nodes)
-        return len(nodes), content
-
-    def fill_matrixs(self, Yn, In, content):
-        for component in content:
-            splitted_line = component.split(" ")
-            
-            if component[0] == "I":
-                if splitted_line[3] == "DC":
-                    In = self.Add_Idc(splitted_line, In)
-                elif splitted_line[3] == "SIN":
-                    In = self.Add_Isin(splitted_line, In)
-
-            elif component[0] == "R":
-                Yn = self.Add_R(splitted_line, Yn)
-                
-            elif component[0] == "G":
-                Yn = self.Add_GmI(splitted_line, Yn)
-
-            elif component[0] == "C":
-                Yn = self.Add_C(splitted_line, Yn)
-            
-            elif component[0] == "L":
-                Yn = self.Add_L(splitted_line, Yn)
-
-            elif component[0] == "K":
-                Yn = self.Add_K(splitted_line, Yn)
-
-        return Yn, In
-
     def Add_Idc(self, splitted_line, In):
         node_a = int(splitted_line[1])
         node_b = int(splitted_line[2])
@@ -273,6 +193,90 @@ class Circuit:
         self.components.append(meta_info)
         return Yn
 
+
+    def get_number_of_nodes(self, content):
+        """
+        Get number of nodes for creating the Yn and In matrices
+
+        Args:
+            content (list): Full content of netlist file in "readlines" format.
+
+        Returns:
+            [int]: Number of nodes.
+            [list]: Content of netlist file with useless line removed.
+        """
+        # Store only unique elements
+        nodes = set()
+        
+        i = 0
+        content_lenght = len(content)
+        while(i < content_lenght):
+            # Skip and removes blank lines and comments:       
+            if content[i][0] == "\n" or content[i][0] == "*" or content[i][0] == " "\
+            or content[i][0] == "\0": 
+                
+                content.remove(content[i])
+
+                # The next element becomes the current one, so doesn't need to add 1 in "i".
+                # Content lenght down by 1 
+                content_lenght -= 1
+
+            elif content[i][0] == "I" or content[i][0] == "R" or content[i][0] == "G"\
+                or content[i][0] == "L" or content[i][0] == "C" or content[i][0] == "K":
+                
+                splitted_line = content[i].split(" ")
+                
+                # Add node "a" and "b"
+                nodes.add(int(splitted_line[1]))
+                nodes.add(int(splitted_line[2]))
+
+                if content[i][0] == "G" or content[i][0] == "K":
+                    # nodes "c" and "d" (control nodes for "G", and nodes for the secondary 
+                    # inductor of the transformer "K")
+                    nodes.add(int(splitted_line[3]))
+                    nodes.add(int(splitted_line[4]))
+
+                # Get frequency of sine wave source
+                elif splitted_line[3] == "SIN":
+                    self.w = 2*pi*float(splitted_line[6])
+
+                i += 1
+            else:
+                sys.exit(f"Netlist com a {i}ª linha inválida")
+
+        if self.w == 0:
+            sys.exit("The circuit must have at least one Sine Power Source. It doesn't countains any.")
+
+        self.n = len(nodes)
+        return self.n, content
+
+    def fill_matrixs(self, Yn, In, content):
+        for component in content:
+            splitted_line = component.split(" ")
+            
+            if component[0] == "I":
+                if splitted_line[3] == "DC":
+                    In = self.Add_Idc(splitted_line, In)
+                elif splitted_line[3] == "SIN":
+                    In = self.Add_Isin(splitted_line, In)
+
+            elif component[0] == "R":
+                Yn = self.Add_R(splitted_line, Yn)
+                
+            elif component[0] == "G":
+                Yn = self.Add_GmI(splitted_line, Yn)
+
+            elif component[0] == "C":
+                Yn = self.Add_C(splitted_line, Yn)
+            
+            elif component[0] == "L":
+                Yn = self.Add_L(splitted_line, Yn)
+
+            elif component[0] == "K":
+                Yn = self.Add_K(splitted_line, Yn)
+
+        return Yn, In
+
     def analyze(self, netlist):
         
         # Refresh all variables
@@ -320,6 +324,7 @@ class Circuit:
             print("\tNodal Voltages")
             for i in range(len(self.e)):
                 print(f"e{i + 1} = {self.e[i][0]} V")
+            print("------------------------------------------------------------")
         
         elif var == "n":
             print(f"Number of nodes: {self.n}")
@@ -369,5 +374,5 @@ def main(netlist):
     ckt = Circuit()
     ckt.analyze(netlist)
     ckt.show("e")
-
+    
 main()
