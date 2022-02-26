@@ -1,5 +1,3 @@
-"""Modified nodal analysis"""
-
 import numpy as np
 import sys
 import click
@@ -681,8 +679,7 @@ class Circuit:
 @click.option("--netlist", help="Netlist file path", prompt=True)
 def main(netlist):
     """
-    Calculates the nodal voltages and current variables of the circuit 
-    provided by the netlist.
+    Calculates the nodal voltages of the circuit provided by the netlist.
     """
     
     ckt = Circuit()
