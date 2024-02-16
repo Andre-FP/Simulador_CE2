@@ -1,2 +1,2 @@
-# Simulador_CE2
-Simulador de circuito 
+# Simulator_CE2
+Circuit simulator for class "Electric circuits II" of UFRJ university.
